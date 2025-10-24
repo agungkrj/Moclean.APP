@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moclienapp/fiturr/beranda_page.dart';
 import 'package:moclienapp/screens/regis_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -121,7 +122,10 @@ class _LoginPageState extends State<LoginPage> {
                   // Tombol login
                   ElevatedButton(
                     onPressed: () {
-                      // TODO: aksi login
+                      Navigator.pushReplacement(
+                           context,
+                          MaterialPageRoute(builder: (context) => BerandaPage()),
+                        );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF3C6EEF),
