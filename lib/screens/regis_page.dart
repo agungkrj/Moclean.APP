@@ -1,19 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+//import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:moclienapp/screens/login_page.dart';
+import 'package:moclienapp/screens/pilih_lokasi_page.dart';
+//import 'package:moclienapp/screens/pilih_role_page.dart';
 
-class RegisterPage extends StatelessWidget {
+class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
+
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _alamatController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF3366FF), // warna biru bagian bawah
+      backgroundColor: const Color(0xFF3C6EEF),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             child: Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(25),
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -21,67 +35,112 @@ class RegisterPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "Registrasi",
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFF3C6EEF),
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    "Nomor HP kamu dipakai untuk proses verifikasi dan masuk ke akun MoClean",
-                    style: TextStyle(color: Colors.black54, fontSize: 13),
+                  Text(
+                    "Buat akun untuk menggunakan layanan aplikasi MoClean",
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
                   ),
                   const SizedBox(height: 25),
 
-                  // TextField Nama
+                  // Nama
                   TextField(
+                    controller: _nameController,
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.person_outline),
-                      hintText: "Nama",
+                      labelText: "Nama Pengguna",
+                      labelStyle: GoogleFonts.poppins(fontSize: 13),
                       filled: true,
-                      fillColor: Colors.grey.shade200,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      fillColor: const Color(0xFFF1F1F1),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide.none,
                       ),
+                      prefixIcon: const Icon(Icons.person_outline),
                     ),
                   ),
                   const SizedBox(height: 15),
 
-                  // TextField No HP
+                  // Kata Sandi
                   TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: "Kata Sandi",
+                      labelStyle: GoogleFonts.poppins(fontSize: 13),
+                      filled: true,
+                      fillColor: const Color(0xFFF1F1F1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: const Icon(Icons.visibility_off_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+
+                  // Nomor Telepon
+                  TextField(
+                    controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.phone_outlined),
-                      hintText: "No HP",
+                      labelText: "Nomor Telepon",
+                      labelStyle: GoogleFonts.poppins(fontSize: 13),
                       filled: true,
-                      fillColor: Colors.grey.shade200,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      fillColor: const Color(0xFFF1F1F1),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide.none,
                       ),
+                      prefixIcon: const Icon(Icons.phone_android_outlined),
                     ),
                   ),
                   const SizedBox(height: 15),
 
-                  // TextField Alamat
-                  TextField(
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.home_outlined),
-                      hintText: "Alamat",
-                      filled: true,
-                      fillColor: Colors.grey.shade200,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide.none,
+                  // Alamat (buka peta)
+                  GestureDetector(
+                    onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PilihLokasiPage(),
+                        ),
+                      );
+                      if (result != null) {
+                        setState(() {
+                          _alamatController.text = result.toString();
+                        });
+                      }
+                    },
+                    child: AbsorbPointer(
+                      child: TextField(
+                        controller: _alamatController,
+                        decoration: InputDecoration(
+                          labelText: "Alamat",
+                          labelStyle: GoogleFonts.poppins(fontSize: 13),
+                          hintText: "Pilih lokasi di peta",
+                          filled: true,
+                          fillColor: const Color(0xFFF1F1F1),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          prefixIcon: const Icon(Icons.location_on_outlined),
+                        ),
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 25),
 
                   // Tombol Lanjut
@@ -89,36 +148,40 @@ class RegisterPage extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Aksi tombol lanjut
                         Navigator.pushReplacement(
-                           context,
-                          MaterialPageRoute(builder: (context) => LoginPage()),
-                        );// balik ke login
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LoginPage(),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFB8C7FF),
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: const Color(0xFF3C6EEF),
+                        minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         "Lanjut",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
 
-                  // Teks kecil bawah
-                  const Center(
+                  const SizedBox(height: 20),
+                  Center(
                     child: Text(
-                      "From\nGOTO\n\nSaya menyetujui Ketentuan Layanan & Kebijakan Privasi MoClean",
+                      "Saya menyetujui Ketentuan layanan & Kebijakan Privasi MoClean",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         color: Colors.black54,
                         fontSize: 11,
+                        height: 1.3,
                       ),
                     ),
                   ),

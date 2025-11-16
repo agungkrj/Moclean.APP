@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moclienapp/fiturr/pesan_layanan.dart';
 
 class DetailCuciInteriorPage extends StatelessWidget {
   const DetailCuciInteriorPage({super.key});
@@ -6,167 +7,173 @@ class DetailCuciInteriorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF5F5F5),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black87, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Bagian gambar atas
-            Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: const Color(0xffE8ECFF),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Image.asset(
-                    'assets/interior.png', // ganti sesuai path gambar kamu
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Cuci Interior',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            // 🔷 GAMBAR FULL LEBAR
+            SizedBox(
+              width: double.infinity,
+              height: 190,
+              child: Image.asset(
+                'assets/interior.png', // ✅ ganti sesuai path kamu
+                fit: BoxFit.cover,
+              ),
             ),
 
-            // Bagian detail layanan
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 8),
-                  const Text(
-                    'ID : L002',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w600,
-                    ),
+            // 🔹 BAGIAN PUTIH (LABEL)
+            Center(
+              child: Transform.translate(
+                offset: const Offset(0, -20),
+                child: Container(
+                  width: 367,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Layanan - Cuci Interior',
+                  alignment: Alignment.center,
+                  child: const Text(
+                    "Cuci Interior",
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Harga',
-                    style: TextStyle(
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Text(
-                    'Rp. 135.000',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Membersihkan seluruh bagian dalam mobil (interior) '
-                    'menggunakan vacuum cleaner dan cairan pembersih '
-                    'khusus interior. Mengangkat debu, kotoran, dan noda '
-                    'pada karpet, jok, dashboard, dan plafon mobil agar '
-                    'tetap bersih dan segar.',
-                    textAlign: TextAlign.justify,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.5,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                ),
+              ),
+            ),
 
-                  // Fitur layanan
-                  const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.green),
-                      SizedBox(width: 8),
-                      Text('Vacuum Interior'),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.green),
-                      SizedBox(width: 8),
-                      Text('Dashboard Cleaning'),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.green),
-                      SizedBox(width: 8),
-                      Text('Carpet Wash'),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-                  // Tombol Pesan Sekarang
-                  Center(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff4F63D2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 14,
-                        ),
-                      ),
-                      onPressed: () {
-                        // Aksi ketika ditekan
-                      },
-                      child: const Text(
-                        'Pesan Sekarang',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+            // 🔹 DETAIL LAYANAN
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Layanan - Cuci Interior",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
-                  )
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    "Harga",
+                    style: TextStyle(fontSize: 13, color: Colors.black54),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    "Rp. 135.000",
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    "Membersihkan seluruh bagian dalam mobil (interior) menggunakan vacuum cleaner dan cairan pembersih khusus interior. Mengangkat debu, kotoran, dan noda pada karpet, jok, dashboard, dan plafon mobil agar tetap bersih dan segar.",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.black87,
+                      height: 1.5,
+                    ),
+                  ),
                 ],
               ),
             ),
+
+            const SizedBox(height: 18),
+
+            // 🔹 FITUR LAYANAN
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Column(
+                children: [
+                  buildFeature("Vacuum Interior"),
+                  buildFeature("Dashboard Cleaning"),
+                  buildFeature("Carpet Wash"),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 28),
+
+            // 🔹 TOMBOL PESAN SEKARANG
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PesanLayananPage(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4169E1),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    "Pesan Sekarang",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 25),
           ],
         ),
+      ),
+    );
+  }
+
+  // 🔹 Widget fitur
+  static Widget buildFeature(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: Colors.green, size: 22),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: const TextStyle(fontSize: 14, color: Colors.black87),
+          ),
+        ],
       ),
     );
   }

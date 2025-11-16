@@ -30,8 +30,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  fl_chart: ^0.65.0
+  flutter_osm_plugin: ^1.4.3
   google_maps_flutter: ^2.5.0
   convex_bottom_bar: ^3.2.0
+  
   
 
   # The following adds the Cupertino Icons font to your application.
@@ -69,6 +72,13 @@ flutter:
      - assets/eksterio.png
      - assets/interior.png
      - assets/cucikomplit.png
+     - assets/payment.png
+     - assets/icon.png
+     - assets/car.png
+     - assets/orangkiri.png
+     - assets/orangkanan.png
+     - assets/mobil.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

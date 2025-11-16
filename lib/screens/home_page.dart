@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:moclienapp/screens/login_page.dart';
+import 'package:moclienapp/screens/pilih_role_page.dart';
 
 class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF3C6EEF), // warna biru latar
+      backgroundColor: const Color(0xFF3C6EEF), // warna biru khas MoClean
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -13,16 +15,16 @@ class HomePage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: 40),
 
-                // Teks sambutan
+                // Judul sambutan
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "Selamat datang di\nMoClean !",
+                    "Selamat Datang di\nMoClean!",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 26,
+                      fontSize: 30,
                       fontWeight: FontWeight.bold,
                       height: 1.3,
                     ),
@@ -39,8 +41,8 @@ class HomePage extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.all(20),
                   child: Image.asset(
-                    'assets/carwash.png', // ganti sesuai nama file ilustrasi kamu
-                    width: 300,
+                    'assets/carwash.png',
+                    width: 280,
                     height: 180,
                     fit: BoxFit.contain,
                   ),
@@ -48,10 +50,10 @@ class HomePage extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                // Deskripsi
+                // Deskripsi singkat
                 const Text(
-                  "Aplikasi solusi cuci mobil cepat & praktis.\n"
-                  "Cukup pesan, kami datang ke lokasi kamu.",
+                  "Solusi cuci mobil cepat, bersih, dan praktis.\n"
+                  "Kami datang langsung ke lokasi kamu!",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
@@ -60,73 +62,39 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 50),
 
-                // Garis pemisah
-                const Text(
-                  "***",
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 18,
-                    letterSpacing: 2,
-                  ),
-                ),
-
-                const SizedBox(height: 25),
-
-                // Tombol Masuk
+                // Tombol mulai / masuk
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => LoginPage()),
-                      );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PilihRolePage()),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 50),
+                    minimumSize: const Size(double.infinity, 55),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
+                    elevation: 4,
                   ),
                   child: const Text(
-                    "Masuk",
+                    "Mulai Sekarang",
                     style: TextStyle(
                       color: Color(0xFF3C6EEF),
-                      fontSize: 16,
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 15),
-
-                // Tombol daftar
-                OutlinedButton(
-                  onPressed: () {
-                    // TODO: arahkan ke halaman registrasi
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.white),
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    "Belum ada akun? Daftar dulu",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
                     ),
                   ),
                 ),
 
                 const SizedBox(height: 30),
 
-                // Teks paling bawah
+                // Footer teks
                 const Text(
-                  "Dengan masuk atau mendaftar, kamu menyetujui Ketentuan layanan dan Kebijakan privasi",
+                  "Dengan melanjutkan, kamu menyetujui\nKetentuan Layanan & Kebijakan Privasi MoClean.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white70,
