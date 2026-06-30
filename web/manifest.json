@@ -1,6 +1,11 @@
 {
+<<<<<<< HEAD
     "name": "moclienapp",
     "short_name": "moclienapp",
+=======
+    "name": "mocliean",
+    "short_name": "mocliean",
+>>>>>>> 36f1c013247f0425a92a148b9ef912be90b92e82
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

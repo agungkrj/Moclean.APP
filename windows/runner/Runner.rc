@@ -90,12 +90,21 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
+<<<<<<< HEAD
             VALUE "FileDescription", "moclienapp" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "moclienapp" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
             VALUE "OriginalFilename", "moclienapp.exe" "\0"
             VALUE "ProductName", "moclienapp" "\0"
+=======
+            VALUE "FileDescription", "mocliean" "\0"
+            VALUE "FileVersion", VERSION_AS_STRING "\0"
+            VALUE "InternalName", "mocliean" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
+            VALUE "OriginalFilename", "mocliean.exe" "\0"
+            VALUE "ProductName", "mocliean" "\0"
+>>>>>>> 36f1c013247f0425a92a148b9ef912be90b92e82
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

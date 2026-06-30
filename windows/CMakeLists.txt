@@ -1,10 +1,18 @@
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.14)
+<<<<<<< HEAD
 project(moclienapp LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "moclienapp")
+=======
+project(mocliean LANGUAGES CXX)
+
+# The name of the executable created for the application. Change this to change
+# the on-disk name of your application.
+set(BINARY_NAME "mocliean")
+>>>>>>> 36f1c013247f0425a92a148b9ef912be90b92e82
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

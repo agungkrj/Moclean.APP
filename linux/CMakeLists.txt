@@ -4,10 +4,17 @@ project(runner LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
+<<<<<<< HEAD
 set(BINARY_NAME "moclienapp")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
 set(APPLICATION_ID "com.example.moclienapp")
+=======
+set(BINARY_NAME "mocliean")
+# The unique GTK application identifier for this application. See:
+# https://wiki.gnome.org/HowDoI/ChooseApplicationID
+set(APPLICATION_ID "com.example.mocliean")
+>>>>>>> 36f1c013247f0425a92a148b9ef912be90b92e82
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

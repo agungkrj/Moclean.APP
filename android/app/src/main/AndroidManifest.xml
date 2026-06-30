@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
+<<<<<<< HEAD
         android:label="moclienapp"
+=======
+        android:label="mocliean"
+>>>>>>> 36f1c013247f0425a92a148b9ef912be90b92e82
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

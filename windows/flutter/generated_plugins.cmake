@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+<<<<<<< HEAD
   cloud_firestore
   file_selector_windows
   firebase_auth
@@ -11,6 +12,8 @@ list(APPEND FLUTTER_PLUGIN_LIST
   geolocator_windows
   permission_handler_windows
   url_launcher_windows
+=======
+>>>>>>> 36f1c013247f0425a92a148b9ef912be90b92e82
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
