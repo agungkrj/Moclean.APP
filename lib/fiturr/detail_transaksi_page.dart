@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moclienapp/fiturr/aktivitas.dart';
 import 'package:moclienapp/fiturr/detail_pesanan_page.dart.dart';
 
 class DetailTransaksiPage extends StatelessWidget {
@@ -82,7 +83,7 @@ class DetailTransaksiPage extends StatelessWidget {
                   onPressed: () {
                   Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => DetailPesananPage()),
+                        MaterialPageRoute(builder: (context) => AktifitasScreen()),
                       );
                   },
                   style: ElevatedButton.styleFrom(

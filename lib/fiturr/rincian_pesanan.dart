@@ -1,11 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:moclienapp/fiturr/pembayaran_page.dart';
+import 'package:moclienapp/models/order_model.dart';
+import 'package:intl/intl.dart';
 
 class RincianPesananPage extends StatelessWidget {
-  const RincianPesananPage({super.key});
+  final OrderModel order;
+  
+  const RincianPesananPage({
+    super.key,
+    required this.order,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // ===== FORMAT TANGGAL =====
+    String formattedDate = DateFormat('EEEE, dd MMM yy', 'id_ID').format(order.orderDate);
+    String formattedTime = DateFormat('HH:mm').format(order.createdAt);
+    
+    // ===== HITUNG BIAYA =====
+    // Ambil angka dari harga (contoh: "Rp. 80.000" -> 80000)
+    int biayaLayanan = int.parse(order.servicePrice.replaceAll(RegExp(r'[^0-9]'), ''));
+    
+    // Biaya berdasarkan ukuran mobil
+    int biayaUkuran = 0;
+    if (order.ukuranMobil == "Kecil") {
+      biayaUkuran = 0;
+    } else if (order.ukuranMobil == "Sedang") {
+      biayaUkuran = 20000;
+    } else if (order.ukuranMobil == "Besar") {
+      biayaUkuran = 40000;
+    }
+    
+    int biayaAdmin = 1500;
+    int total = biayaLayanan + biayaUkuran + biayaAdmin;
+    
     return Scaffold(
       backgroundColor: const Color(0xffF5F5F5),
       appBar: AppBar(
@@ -40,7 +68,7 @@ class RincianPesananPage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
-            // 🔹 Lokasi
+            // ===== LOKASI =====
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -48,10 +76,10 @@ class RincianPesananPage extends StatelessWidget {
                 color: const Color(0xFFEAF0FF),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  const Row(
                     children: [
                       Icon(Icons.location_on, color: Colors.black87, size: 18),
                       SizedBox(width: 6),
@@ -64,15 +92,24 @@ class RincianPesananPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Text(
-                    "[Panji Supanji] 0822 5051 5052",
-                    style: TextStyle(fontSize: 13),
+                    "[${order.customerName}] ${order.phone}",
+                    style: const TextStyle(fontSize: 13),
                   ),
-                  SizedBox(height: 3),
+                  const SizedBox(height: 3),
                   Text(
-                    "Jl. Scott Street No.3, Batam Centre, Indonesia",
-                    style: TextStyle(fontSize: 13),
+                    order.address,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    "Mitra: ${order.mitra}",
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF2C4A8F),
+                    ),
                   ),
                 ],
               ),
@@ -80,7 +117,7 @@ class RincianPesananPage extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // 🔹 Detail Pesanan
+            // ===== DETAIL PESANAN =====
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
@@ -91,7 +128,7 @@ class RincianPesananPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ID Pesanan + tanggal
+                  // ID Pesanan
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -102,53 +139,52 @@ class RincianPesananPage extends StatelessWidget {
                           fontSize: 13,
                         ),
                       ),
-                      const Text(
-                        "219120233",
-                        style: TextStyle(
+                      Text(
+                        order.orderId.substring(order.orderId.length - 9),
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
                       ),
                     ],
                   ),
+                  
                   const SizedBox(height: 8),
+                  
+                  // Tanggal dan Waktu
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.calendar_today,
-                                color: Colors.black54, size: 16),
-                            SizedBox(width: 6),
+                            const Icon(Icons.calendar_today, color: Colors.black54, size: 16),
+                            const SizedBox(width: 6),
                             Text(
-                              "Jumat, 05 Sept 25",
-                              style: TextStyle(fontSize: 12),
+                              formattedDate,
+                              style: const TextStyle(fontSize: 12),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.access_time,
-                                color: Colors.black54, size: 16),
-                            SizedBox(width: 6),
+                            const Icon(Icons.access_time, color: Colors.black54, size: 16),
+                            const SizedBox(width: 6),
                             Text(
-                              "13:22",
-                              style: TextStyle(fontSize: 12),
+                              formattedTime,
+                              style: const TextStyle(fontSize: 12),
                             ),
                           ],
                         ),
@@ -157,35 +193,59 @@ class RincianPesananPage extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 16),
+                  
+                  // Jenis Layanan
                   const Text(
                     "Jenis Layanan",
                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                   ),
                   const SizedBox(height: 3),
-                  const Text(
-                    "Cuci Full Body",
-                    style: TextStyle(fontSize: 13),
+                  Text(
+                    order.serviceName,
+                    style: const TextStyle(fontSize: 13),
                   ),
+                  
                   const SizedBox(height: 10),
 
+                  // Detail Kendaraan
                   const Text(
                     "Detail Kendaraan",
                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                   ),
                   const SizedBox(height: 3),
-                  const Text(
-                    "Brio C300 plat 4532",
-                    style: TextStyle(fontSize: 13),
+                  Text(
+                    "${order.brand} ${order.type} - Plat ${order.nopolisi}",
+                    style: const TextStyle(fontSize: 13),
                   ),
+                  const SizedBox(height: 3),
+                  Text(
+                    "Ukuran: ${order.ukuranMobil}",
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                  
                   const SizedBox(height: 10),
 
+                  // Email
+                  const Text(
+                    "Email",
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    order.email,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  
+                  const SizedBox(height: 10),
+
+                  // Jumlah Unit
                   const Text(
                     "Jumlah Unit",
                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                   ),
                   const SizedBox(height: 3),
                   const Text(
-                    "1 ",
+                    "1",
                     style: TextStyle(fontSize: 13),
                   ),
                 ],
@@ -194,26 +254,34 @@ class RincianPesananPage extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // 🔹 Rincian Biaya
+            // ===== RINCIAN BIAYA =====
             Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CostRow("Biaya Layanan", "Rp 70.000"),
-                  CostRow("Biaya Jenis Kendaraan", "Rp 20.000"),
-                  CostRow("Biaya Admin", "Rp 1.500"),
-                  Divider(),
+                  CostRow(
+                    "Biaya Layanan",
+                    "Rp ${NumberFormat('#,###', 'id_ID').format(biayaLayanan)}",
+                  ),
+                  CostRow(
+                    "Biaya Ukuran (${order.ukuranMobil})",
+                    "Rp ${NumberFormat('#,###', 'id_ID').format(biayaUkuran)}",
+                  ),
+                  CostRow(
+                    "Biaya Admin",
+                    "Rp ${NumberFormat('#,###', 'id_ID').format(biayaAdmin)}",
+                  ),
+                  const Divider(height: 20, thickness: 1),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         "Total",
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
@@ -221,8 +289,8 @@ class RincianPesananPage extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        "Rp 91.500",
-                        style: TextStyle(
+                        "Rp ${NumberFormat('#,###', 'id_ID').format(total)}",
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                           color: Colors.black87,
@@ -236,7 +304,7 @@ class RincianPesananPage extends StatelessWidget {
 
             const SizedBox(height: 25),
 
-            // 🔹 Tombol Aksi
+            // ===== TOMBOL AKSI =====
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -273,9 +341,18 @@ class RincianPesananPage extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                        Navigator.pushReplacement(
+                      // LOGIKA: Kirim data order dan total ke halaman pembayaran
+                      Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => PembayaranPage()),
+                        MaterialPageRoute(
+                          builder: (context) => PembayaranPage(
+                            order: order,
+                            totalAmount: total,
+                            biayaLayanan: biayaLayanan,
+                            biayaUkuran: biayaUkuran,
+                            biayaAdmin: biayaAdmin,
+                          ),
+                        ),
                       );
                     },
                     child: const Text(
@@ -297,10 +374,11 @@ class RincianPesananPage extends StatelessWidget {
   }
 }
 
-// 🔹 Widget baris biaya
+// ===== WIDGET BARIS BIAYA =====
 class CostRow extends StatelessWidget {
   final String title;
   final String value;
+  
   const CostRow(this.title, this.value, {super.key});
 
   @override
@@ -310,16 +388,20 @@ class CostRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Colors.black87,
-              )),
-          Text(value,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Colors.black87,
-              )),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.black87,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.black87,
+            ),
+          ),
         ],
       ),
     );

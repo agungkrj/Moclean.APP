@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:moclienapp/mitra/BerandaMitra.dart';
+import 'package:moclienapp/mitra/laporan_pendapatan.dart';
+import 'package:moclienapp/mitra/profile_mitra.dart';
 import 'package:moclienapp/mitra/tambah_mitra.dart';
-import 'costum_navbar.dart'; // Import navbar custom
+import 'package:moclienapp/models/karyawan_model.dart';
+import 'package:moclienapp/services/karyawan_service.dart';
+import 'costum_navbar.dart';
 
 class TeknisiPage extends StatefulWidget {
   const TeknisiPage({Key? key}) : super(key: key);
@@ -11,6 +15,7 @@ class TeknisiPage extends StatefulWidget {
 }
 
 class _TeknisiPageState extends State<TeknisiPage> {
+  final KaryawanService _karyawanService = KaryawanService();
   int _selectedIndex = 1; // Index 1 untuk Teknisi
 
   void _onItemTapped(int index) {
@@ -20,6 +25,7 @@ class _TeknisiPageState extends State<TeknisiPage> {
       _selectedIndex = index;
     });
     
+    // Navigation logic sesuai dengan yang sudah ada
     switch (index) {
       case 0:
         Navigator.push(context, MaterialPageRoute(builder: (context) => BerandaMitra()));
@@ -28,10 +34,74 @@ class _TeknisiPageState extends State<TeknisiPage> {
         // Sudah di halaman teknisi
         break;
       case 2:
-        
+       Navigator.push(context, MaterialPageRoute(builder: (context) => LaporanPendapatan()));
+        break;
       case 3:
-        
+      Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileMitraPage()));
+        break;
     }
+  }
+
+  Future<void> _navigateToTambahKaryawan() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TambahKaryawanPage()),
+    );
+
+    // Refresh otomatis karena menggunakan StreamBuilder
+    if (result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Karyawan berhasil ditambahkan'),
+          backgroundColor: Color(0xFF5669FF),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Karyawan karyawan) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text(
+            'Hapus Karyawan',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            'Apakah Anda yakin ingin menghapus ${karyawan.namaLengkap} dari sistem?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                bool success = await _karyawanService.deleteKaryawan(karyawan.id!);
+                
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Karyawan berhasil dihapus'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -86,12 +156,7 @@ class _TeknisiPageState extends State<TeknisiPage> {
                   ],
                 ),
                 OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const TambahKaryawanPage()),
-                  );
-                  },
+                  onPressed: _navigateToTambahKaryawan,
                   icon: const Icon(Icons.add, size: 16, color: Color(0xFF5669FF)),
                   label: const Text(
                     'Tambah Karyawan',
@@ -112,32 +177,111 @@ class _TeknisiPageState extends State<TeknisiPage> {
             ),
           ),
           
-          // Employee List
+          // Employee List dengan StreamBuilder
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildEmployeeCard('LF', 'LYOD. F', 'shift pagi - 0812 - XXXX'),
-                _buildEmployeeCard('JA', 'JAVIER. A', 'shift pagi - 0812 - XXXX'),
-                _buildEmployeeCard('AM', 'ALICIA. M', 'shift pagi - 0812 - XXXX'),
-                _buildEmployeeCard('US', 'ULER. S', 'shift pagi - 0812 - XXXX'),
-                _buildEmployeeCard('FL', 'FRONTERA. L', 'shift pagi - 0812 - XXXX'),
-                _buildEmployeeCard('AJ', 'AGUNG. J', 'shift pagi - 0812 - XXXX'),
-                _buildEmployeeCard('MA', 'MEGANTO. A', 'shift pagi - 0812 - XXXX'),
-                const SizedBox(height: 80),
-              ],
+            child: StreamBuilder<List<Karyawan>>(
+              stream: _karyawanService.getAllKaryawan(),
+              builder: (context, snapshot) {
+                // Loading state
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF5669FF),
+                    ),
+                  );
+                }
+
+                // Error state
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Terjadi kesalahan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.red.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          snapshot.error.toString(),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // Empty state
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.people_outline, size: 80, color: Colors.grey.shade300),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Belum ada karyawan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Tambahkan karyawan pertama Anda',
+                          style: TextStyle(fontSize: 13, color: Colors.black38),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _navigateToTambahKaryawan,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Tambah Karyawan'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF5669FF),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // Data available
+                final karyawanList = snapshot.data!;
+                
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: karyawanList.length,
+                  itemBuilder: (context, index) {
+                    final karyawan = karyawanList[index];
+                    return _buildEmployeeCard(karyawan);
+                  },
+                );
+              },
             ),
           ),
         ],
       ),
       bottomNavigationBar: CustomBottomNavBar(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
-      ),
+      selectedIndex: _selectedIndex,
+         onItemTapped: _onItemTapped,
+       ),
     );
   }
 
-  Widget _buildEmployeeCard(String initials, String name, String info) {
+  Widget _buildEmployeeCard(Karyawan karyawan) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
@@ -158,7 +302,7 @@ class _TeknisiPageState extends State<TeknisiPage> {
             ),
             child: Center(
               child: Text(
-                initials,
+                karyawan.getInitials(),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -174,7 +318,7 @@ class _TeknisiPageState extends State<TeknisiPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  name,
+                  karyawan.namaLengkap,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -183,17 +327,33 @@ class _TeknisiPageState extends State<TeknisiPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  info,
+                  '${karyawan.shift} - ${karyawan.telepon}',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Colors.black54,
                   ),
                 ),
+                const SizedBox(height: 2),
+                Text(
+                  karyawan.posisi,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ],
             ),
+          ),
+          // Delete Button
+          IconButton(
+            icon: Icon(Icons.delete_outline, color: Colors.red.shade400, size: 20),
+            onPressed: () => _showDeleteConfirmation(context, karyawan),
+            tooltip: 'Hapus karyawan',
           ),
         ],
       ),
     );
   }
 }
+

@@ -1,7 +1,11 @@
+// admin/kelola_layanan_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:moclienapp/admin/beranda_admin.dart';
 import 'package:moclienapp/admin/kelola_langganan_page.dart';
-import 'admin_bottom_navbar.dart'; // Import navbar admin
+import 'package:moclienapp/services/service_firebase.dart';
+import 'package:moclienapp/models/service_model.dart';
+import 'admin_bottom_navbar.dart';
 
 class KelolaLayananPage extends StatefulWidget {
   const KelolaLayananPage({Key? key}) : super(key: key);
@@ -11,7 +15,9 @@ class KelolaLayananPage extends StatefulWidget {
 }
 
 class _KelolaLayananPageState extends State<KelolaLayananPage> {
-  int _selectedIndex = 1; // Index 1 untuk Mitra
+  int _selectedIndex = 1;
+  final ServiceFirebase _serviceFirebase = ServiceFirebase();
+  bool _isLoading = false;
 
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
@@ -22,13 +28,18 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
 
     switch (index) {
       case 0:
-         Navigator.push(context, MaterialPageRoute(builder: (context) => AdminDashboardPage()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => AdminDashboardPage()),
+        );
         break;
       case 1:
-        // Sudah di halaman mitra/layanan
         break;
       case 2:
-         Navigator.push(context, MaterialPageRoute(builder: (context) => KelolaLanggananPage()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => KelolaLanggananPage()),
+        );
         break;
     }
   }
@@ -54,36 +65,67 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
         ),
         centerTitle: false,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Cuci Interior
-          _buildServiceCard(
-            title: 'Cuci Interior',
-            hargaSekarang: 'Rp. 135.000,00',
-            ubahHargaHint: 'masukkan harga',
-          ),
+      body: StreamBuilder<List<ServiceModel>>(
+        stream: _serviceFirebase.getServices(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF5669FF),
+              ),
+            );
+          }
 
-          const SizedBox(height: 16),
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text('Error: ${snapshot.error}'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => setState(() {}),
+                    child: const Text('Coba Lagi'),
+                  ),
+                ],
+              ),
+            );
+          }
 
-          // Cuci Eksterior
-          _buildServiceCard(
-            title: 'Cuci Eksterior',
-            hargaSekarang: 'Rp. 80.000,00',
-            ubahHargaHint: 'masukkan harga',
-          ),
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.inbox_outlined, size: 60, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text('Belum ada layanan'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _initializeServices,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF5669FF),
+                    ),
+                    child: const Text('Inisialisasi Layanan Default'),
+                  ),
+                ],
+              ),
+            );
+          }
 
-          const SizedBox(height: 16),
+          final services = snapshot.data!;
 
-          // Cuci Komplit
-          _buildServiceCard(
-            title: 'Cuci Komplit',
-            hargaSekarang: 'Rp. 80.000,00',
-            ubahHargaHint: 'masukkan harga',
-          ),
-
-          const SizedBox(height: 80),
-        ],
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: services.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              return _buildServiceCard(services[index]);
+            },
+          );
+        },
       ),
       bottomNavigationBar: AdminBottomNavBar(
         selectedIndex: _selectedIndex,
@@ -92,11 +134,7 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
     );
   }
 
-  Widget _buildServiceCard({
-    required String title,
-    required String hargaSekarang,
-    required String ubahHargaHint,
-  }) {
+  Widget _buildServiceCard(ServiceModel service) {
     final TextEditingController hargaController = TextEditingController();
 
     return Container(
@@ -108,19 +146,15 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title
           Text(
-            title,
+            service.name,
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // Harga Sekarang
           const Text(
             'Harga Sekarang',
             style: TextStyle(
@@ -131,16 +165,13 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            hargaSekarang,
+            _formatCurrency(service.price),
             style: const TextStyle(
               fontSize: 13,
               color: Colors.black87,
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // Ubah Harga
           const Text(
             'Ubah Harga',
             style: TextStyle(
@@ -150,16 +181,17 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
             ),
           ),
           const SizedBox(height: 8),
-
-          // Input & Button Row
           Row(
             children: [
               Expanded(
                 child: TextField(
                   controller: hargaController,
                   keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                   decoration: InputDecoration(
-                    hintText: ubahHargaHint,
+                    hintText: 'masukkan harga',
                     hintStyle: const TextStyle(
                       fontSize: 12,
                       color: Color(0xFF9E9E9E),
@@ -194,18 +226,7 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
               ),
               const SizedBox(width: 8),
               ElevatedButton(
-                onPressed: () {
-                  if (hargaController.text.isNotEmpty) {
-                    _showSuccessDialog(title, hargaController.text);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Masukkan harga terlebih dahulu'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
+                onPressed: () => _updatePrice(service, hargaController),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF5669FF),
                   foregroundColor: Colors.white,
@@ -219,19 +240,81 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
                   ),
                   minimumSize: const Size(60, 40),
                 ),
-                child: const Text(
-                  'Atur',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Atur',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _updatePrice(
+    ServiceModel service,
+    TextEditingController controller,
+  ) async {
+    if (controller.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Masukkan harga terlebih dahulu'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final newPrice = controller.text;
+      final success = await _serviceFirebase.updateServicePrice(
+        service.id,
+        newPrice,
+      );
+
+      if (success) {
+        _showSuccessDialog(service.name, newPrice);
+        controller.clear();
+      } else {
+        _showErrorSnackbar('Gagal mengubah harga');
+      }
+    } catch (e) {
+      _showErrorSnackbar('Error: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _initializeServices() async {
+    setState(() => _isLoading = true);
+    try {
+      await _serviceFirebase.initializeDefaultServices();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Layanan berhasil diinisialisasi'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      _showErrorSnackbar('Gagal inisialisasi: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   void _showSuccessDialog(String layanan, String hargaBaru) {
@@ -268,7 +351,7 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Harga $layanan berhasil diubah menjadi Rp. $hargaBaru',
+                'Harga $layanan berhasil diubah menjadi ${_formatCurrency(hargaBaru)}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 13,
@@ -281,11 +364,7 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // Refresh data atau update state
-                  setState(() {});
-                },
+                onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF5669FF),
                   foregroundColor: Colors.white,
@@ -308,5 +387,22 @@ class _KelolaLayananPageState extends State<KelolaLayananPage> {
         );
       },
     );
+  }
+
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  String _formatCurrency(String price) {
+    final number = int.tryParse(price) ?? 0;
+    return 'Rp. ${number.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    )},00';
   }
 }

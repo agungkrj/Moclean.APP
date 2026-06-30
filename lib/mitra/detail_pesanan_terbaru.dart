@@ -1,10 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:moclienapp/models/order_model.dart';
+import 'package:intl/intl.dart';
 
 class DetailPesananTerbaru extends StatelessWidget {
-  const DetailPesananTerbaru({Key? key}) : super(key: key);
+  final OrderModel order;
+  final int totalAmount;
+  final String paymentMethod;
+  
+  const DetailPesananTerbaru({
+    Key? key,
+    required this.order,
+    required this.totalAmount,
+    required this.paymentMethod,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Format tanggal dan waktu
+    String formattedDate = DateFormat('EEEE, dd MMM yy', 'id_ID').format(order.orderDate);
+    String formattedTime = DateFormat('HH:mm').format(order.createdAt);
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -65,19 +80,35 @@ class DetailPesananTerbaru extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    '[Panji Supanji] 0822 5051 5052',
-                    style: TextStyle(
+                  Text(
+                    '[${order.customerName}] ${order.phone}',
+                    style: const TextStyle(
                       fontSize: 13,
                       color: Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Jl. Scott Street No.3, Batam Centre, Indonesia',
-                    style: TextStyle(
+                  Text(
+                    order.address,
+                    style: const TextStyle(
                       fontSize: 13,
                       color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'Mitra: ${order.mitra}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF5669FF),
+                      ),
                     ),
                   ),
                 ],
@@ -99,8 +130,8 @@ class DetailPesananTerbaru extends StatelessWidget {
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text(
+                    children: [
+                      const Text(
                         'ID Pesanan',
                         style: TextStyle(
                           fontSize: 12,
@@ -109,9 +140,10 @@ class DetailPesananTerbaru extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '219210233',
-                        style: TextStyle(
+                        order.orderId.substring(order.orderId.length - 9),
+                        style: const TextStyle(
                           fontSize: 12,
+                          fontWeight: FontWeight.w600,
                           color: Colors.black87,
                         ),
                       ),
@@ -127,12 +159,12 @@ class DetailPesananTerbaru extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
-                          children: const [
-                            Icon(Icons.calendar_today_outlined, size: 14, color: Colors.black87),
-                            SizedBox(width: 6),
+                          children: [
+                            const Icon(Icons.calendar_today_outlined, size: 14, color: Colors.black87),
+                            const SizedBox(width: 6),
                             Text(
-                              'Jumat, 05 Sept 25',
-                              style: TextStyle(
+                              formattedDate,
+                              style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.black87,
                               ),
@@ -148,12 +180,12 @@ class DetailPesananTerbaru extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
-                          children: const [
-                            Icon(Icons.access_time, size: 14, color: Colors.black87),
-                            SizedBox(width: 6),
+                          children: [
+                            const Icon(Icons.access_time, size: 14, color: Colors.black87),
+                            const SizedBox(width: 6),
                             Text(
-                              '13:22',
-                              style: TextStyle(
+                              formattedTime,
+                              style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.black87,
                               ),
@@ -173,9 +205,9 @@ class DetailPesananTerbaru extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Cuci Full Body + Bersih Interior + Bersih AC',
-                    style: TextStyle(
+                  Text(
+                    order.serviceName,
+                    style: const TextStyle(
                       fontSize: 12,
                       color: Colors.black87,
                     ),
@@ -190,11 +222,19 @@ class DetailPesananTerbaru extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Mobil Suzuki BP 1122 C',
-                    style: TextStyle(
+                  Text(
+                    '${order.brand} ${order.type} - Plat ${order.nopolisi}',
+                    style: const TextStyle(
                       fontSize: 12,
                       color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Ukuran: ${order.ukuranMobil}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.black54,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -220,7 +260,7 @@ class DetailPesananTerbaru extends StatelessWidget {
             
             const SizedBox(height: 12),
             
-            // Status and Lihat Rincian
+            // Status, Metode Pembayaran, dan Total
             Row(
               children: [
                 Expanded(
@@ -246,7 +286,8 @@ class DetailPesananTerbaru extends StatelessWidget {
                           'Menunggu',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.black87,
+                            color: Colors.orange,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -263,21 +304,22 @@ class DetailPesananTerbaru extends StatelessWidget {
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Lihat Rincian',
+                      children: [
+                        const Text(
+                          'Pembayaran',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: Colors.black87,
                           ),
                         ),
-                        SizedBox(height: 6),
+                        const SizedBox(height: 6),
                         Text(
-                          'Pesanan',
-                          style: TextStyle(
+                          paymentMethod,
+                          style: const TextStyle(
                             fontSize: 12,
                             color: Colors.black87,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -287,6 +329,39 @@ class DetailPesananTerbaru extends StatelessWidget {
               ],
             ),
             
+            const SizedBox(height: 12),
+            
+            // Total Pembayaran
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8EBFF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Total Pembayaran',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text(
+                    'Rp ${NumberFormat('#,###', 'id_ID').format(totalAmount)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF5669FF),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
             const Spacer(),
             
             // Button Terima
@@ -294,7 +369,66 @@ class DetailPesananTerbaru extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Aksi terima pesanan
+                  // Tampilkan dialog konfirmasi
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      title: const Text(
+                        'Konfirmasi',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      content: const Text(
+                        'Apakah Anda yakin ingin menerima pesanan ini?',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            'Batal',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context); // Tutup dialog
+                            // TODO: Simpan status pesanan ke database
+                            // TODO: Kirim notifikasi ke customer
+                            
+                            // Tampilkan snackbar sukses
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text('Pesanan berhasil diterima!'),
+                                backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                            
+                            // Kembali ke halaman sebelumnya
+                            Future.delayed(const Duration(seconds: 1), () {
+                              Navigator.pop(context);
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF5669FF),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text('Ya, Terima'),
+                        ),
+                      ],
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF5669FF),
@@ -308,10 +442,10 @@ class DetailPesananTerbaru extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
-                    Icon(Icons.arrow_forward, size: 20),
+                    Icon(Icons.check_circle_outline, size: 20),
                     SizedBox(width: 8),
                     Text(
-                      'Terima',
+                      'Terima Pesanan',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

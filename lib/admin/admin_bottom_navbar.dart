@@ -37,7 +37,7 @@ class AdminBottomNavBar extends StatelessWidget {
               _buildNavItem(
                 index: 1,
                 icon: Icons.store,
-                label: 'Mitra',
+                label: 'Layanan',
               ),
               _buildNavItem(
                 index: 2,

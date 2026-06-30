@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:moclienapp/mitra/BerandaMitra.dart';
+import 'package:moclienapp/mitra/regis_mitra.dart';
+import 'package:moclienapp/screens/pilih_role_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginMitraPage extends StatefulWidget {
   const LoginMitraPage({super.key});
@@ -8,41 +14,398 @@ class LoginMitraPage extends StatefulWidget {
 }
 
 class _LoginMitraPageState extends State<LoginMitraPage> {
-  final TextEditingController _namaController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _teleponController = TextEditingController();
-  final TextEditingController _usahaController = TextEditingController();
-  final TextEditingController _alamatController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  bool _obscurePassword = true;
+  bool _rememberMe = false;
+  bool _isLoading = false;
 
-  bool _isKtpUploaded = false;
-  bool _showTopBanner = true;
+  @override
+  void initState() {
+    super.initState();
+    _loadRememberMe();
+    _checkLoginStatus();
+  }
 
-  void _uploadKTP() {
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        final mitraDoc = await _firestore.collection('mitra').doc(currentUser.uid).get();
+        if (mitraDoc.exists) {
+          final status = mitraDoc.data()?['status'] ?? 'pending';
+          if (status == 'approved' && mounted) {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const BerandaMitra()));
+          } else {
+            await _auth.signOut();
+          }
+          return;
+        }
+        await _auth.signOut();
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
+    }
+  }
+
+  Future<void> _loadRememberMe() async {
+    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _isKtpUploaded = true;
+      _rememberMe = prefs.getBool('mitra_rememberMe') ?? false;
+      if (_rememberMe) {
+        _emailController.text = prefs.getString('mitra_email') ?? '';
+      }
     });
   }
 
-  void _daftarSekarang() {
-    if (_namaController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _teleponController.text.isEmpty ||
-        _usahaController.text.isEmpty ||
-        _alamatController.text.isEmpty ||
-        !_isKtpUploaded) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Harap lengkapi semua data'),
-          backgroundColor: Colors.red,
+  Future<void> _saveRememberMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_rememberMe) {
+      await prefs.setBool('mitra_rememberMe', true);
+      await prefs.setString('mitra_email', _emailController.text);
+    } else {
+      await prefs.remove('mitra_rememberMe');
+      await prefs.remove('mitra_email');
+    }
+  }
+
+  void _showErrorPopup(String title, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(color: Colors.red.shade50, shape: BoxShape.circle),
+                child: Icon(Icons.error_outline_rounded, color: Colors.red.shade600, size: 50),
+              ),
+              const SizedBox(height: 20),
+              Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              Text(message, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade600,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Tutup', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
+          ),
         ),
-      );
+      ),
+    );
+  }
+
+  void _showSuccessPopup(String title, String message, VoidCallback onConfirm) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(color: Colors.green.shade50, shape: BoxShape.circle),
+                child: Icon(Icons.check_circle_rounded, color: Colors.green.shade600, size: 50),
+              ),
+              const SizedBox(height: 20),
+              Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              Text(message, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    onConfirm();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade600,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Lanjutkan', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showWarningPopup(String title, String message, Color color, IconData icon) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+                child: Icon(icon, color: color, size: 50),
+              ),
+              const SizedBox(height: 20),
+              Text(title, textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+              const SizedBox(height: 12),
+              Text(message, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await _auth.signOut();
+                    Navigator.pop(ctx);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Mengerti', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showErrorPopup('Data Tidak Lengkap', 'Harap isi email dan password terlebih dahulu');
       return;
     }
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Pendaftaran berhasil!'),
-        backgroundColor: Colors.green,
+
+    setState(() => _isLoading = true);
+
+    try {
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      final mitraDoc = await _firestore.collection('mitra').doc(userCredential.user!.uid).get();
+
+      if (!mitraDoc.exists) {
+        await _auth.signOut();
+        setState(() => _isLoading = false);
+        _showErrorPopup('Akun Tidak Ditemukan', 'Akun ini bukan akun mitra. Silakan daftar sebagai mitra terlebih dahulu.');
+        return;
+      }
+
+      final status = mitraDoc.data()?['status'] ?? 'pending';
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_id', userCredential.user!.uid);
+      await prefs.setString('user_role', 'mitra');
+      await _saveRememberMe();
+
+      setState(() => _isLoading = false);
+
+      if (status == 'pending') {
+        _showWarningPopup('Menunggu Persetujuan', 'Akun mitra Anda sedang dalam proses verifikasi. Mohon tunggu konfirmasi dari tim kami.', Colors.orange.shade600, Icons.schedule_rounded);
+      } else if (status == 'rejected') {
+        _showWarningPopup('Akun Ditolak', 'Maaf, akun mitra Anda tidak dapat disetujui. Silakan hubungi customer service untuk informasi lebih lanjut.', Colors.red.shade600, Icons.cancel_rounded);
+      } else if (status == 'approved') {
+        _showSuccessPopup('Login Berhasil!', 'Selamat datang kembali di MoClean Mitra', () {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const BerandaMitra()));
+        });
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() => _isLoading = false);
+      String title = 'Login Gagal';
+      String message = 'Terjadi kesalahan saat login';
+
+      switch (e.code) {
+        case 'user-not-found':
+          title = 'Email Tidak Terdaftar';
+          message = 'Email yang Anda masukkan tidak terdaftar sebagai mitra.';
+          break;
+        case 'wrong-password':
+          title = 'Password Salah';
+          message = 'Password yang Anda masukkan salah.';
+          break;
+        case 'invalid-email':
+          title = 'Email Tidak Valid';
+          message = 'Format email tidak valid.';
+          break;
+        case 'invalid-credential':
+          title = 'Kredensial Tidak Valid';
+          message = 'Email atau password salah.';
+          break;
+        case 'user-disabled':
+          title = 'Akun Dinonaktifkan';
+          message = 'Akun Anda telah dinonaktifkan.';
+          break;
+        case 'too-many-requests':
+          title = 'Terlalu Banyak Percobaan';
+          message = 'Terlalu banyak percobaan login. Coba lagi nanti.';
+          break;
+        case 'network-request-failed':
+          title = 'Koneksi Bermasalah';
+          message = 'Periksa koneksi internet Anda.';
+          break;
+        default:
+          message = e.message ?? 'Terjadi kesalahan';
+      }
+      _showErrorPopup(title, message);
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showErrorPopup('Terjadi Kesalahan', e.toString());
+    }
+  }
+
+  Future<void> _forgotPassword() async {
+    final emailCtrl = TextEditingController();
+    bool loading = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlgState) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(color: const Color(0xFF5B7FDB).withOpacity(0.1), shape: BoxShape.circle),
+                  child: const Icon(Icons.lock_reset_rounded, color: Color(0xFF5B7FDB), size: 35),
+                ),
+                const SizedBox(height: 20),
+                const Text('Lupa Password?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                Text('Masukkan email mitra yang terdaftar', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  enabled: !loading,
+                  decoration: InputDecoration(
+                    hintText: 'Masukkan email mitra',
+                    prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF5B7FDB)),
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF5B7FDB), width: 2)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: loading ? null : () => Navigator.pop(ctx),
+                        child: Text('Batal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: loading ? Colors.grey : const Color(0xFF5B7FDB))),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: loading ? null : () async {
+                          final email = emailCtrl.text.trim();
+                          if (email.isEmpty) {
+                            Navigator.pop(ctx);
+                            _showErrorPopup('Email Kosong', 'Silakan masukkan email Anda');
+                            return;
+                          }
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+                            Navigator.pop(ctx);
+                            _showErrorPopup('Format Email Salah', 'Format email tidak valid');
+                            return;
+                          }
+                          setDlgState(() => loading = true);
+                          try {
+                            debugPrint('Mencari email: $email');
+                            await _auth.sendPasswordResetEmail(email: email);
+                            setDlgState(() => loading = false);
+                            Navigator.pop(ctx);
+                            _showSuccessPopup('Email Berhasil Dikirim!', 'Link reset password telah dikirim ke:\n$email\n\nCek inbox atau spam folder', () {});
+                          } on FirebaseAuthException catch (e) {
+                            setDlgState(() => loading = false);
+                            Navigator.pop(ctx);
+                            String title = 'Gagal Mengirim';
+                            String msg = 'Terjadi kesalahan';
+                            switch (e.code) {
+                              case 'user-not-found':
+                                title = 'Email Tidak Terdaftar';
+                                msg = 'Email tidak terdaftar di Firebase Authentication';
+                                break;
+                              case 'invalid-email':
+                                title = 'Format Email Salah';
+                                msg = 'Format email tidak valid';
+                                break;
+                              case 'too-many-requests':
+                                title = 'Terlalu Banyak Permintaan';
+                                msg = 'Tunggu beberapa menit lalu coba lagi';
+                                break;
+                              default:
+                                msg = e.message ?? 'Unknown error';
+                            }
+                            _showErrorPopup(title, msg);
+                          } catch (e) {
+                            setDlgState(() => loading = false);
+                            Navigator.pop(ctx);
+                            _showErrorPopup('Terjadi Kesalahan', e.toString());
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF5B7FDB),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: loading
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : const Text('Kirim Link', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -51,427 +414,130 @@ class _LoginMitraPageState extends State<LoginMitraPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Top Banner - Want to book a car wash
-            if (_showTopBanner)
+      body: Stack(
+        children: [
+          Column(
+            children: [
               Container(
-                width: 370,
-                height: 88,
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(16),
+                height: MediaQuery.of(context).size.height * 0.3,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6B8DE3), Color(0xFF5B7FDB)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                  gradient: LinearGradient(
+                    colors: [const Color(0xFF5B7FDB).withOpacity(0.1), const Color(0xFF4A6FD4).withOpacity(0.05)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
-                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Stack(
+              ),
+              Expanded(child: Container(color: Colors.white)),
+            ],
+          ),
+          SingleChildScrollView(
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    const SizedBox(height: 40),
+                    const Column(
                       children: [
-                        const Text(
-                          "Want To Book a car wash?",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          "Download customer app",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
+                        SizedBox(height: 12),
+                        Text('Login Mitra', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                        SizedBox(height: 8),
+                        Text('Masuk ke akun mitra Anda', style: TextStyle(color: Colors.grey)),
                       ],
                     ),
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _showTopBanner = false;
-                          });
-                        },
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                    const SizedBox(height: 48),
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 5))],
                       ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Email', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              hintText: 'Masukkan email Anda',
+                              prefixIcon: const Icon(Icons.email_outlined),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          const Text('Password', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              hintText: 'Masukkan password',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: _forgotPassword,
+                              child: const Text('Lupa Password?', style: TextStyle(color: Color(0xFF5B7FDB), fontWeight: FontWeight.w600)),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _login,
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5B7FDB), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                              child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Masuk', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextButton(
+                      onPressed: () async {
+                        await _auth.signOut();
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.remove('user_id');
+                        await prefs.remove('user_role');
+                        if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PilihRolePage()));
+                      },
+                      child: const Text('Keluar', style: TextStyle(color: Color(0xFF5B7FDB), fontSize: 16, fontWeight: FontWeight.w700)),
+                    ),
+                    const SizedBox(height: 40),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Belum punya akun mitra? '),
+                        GestureDetector(
+                          onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const RegistrasiMitraPage())),
+                          child: const Text('Daftar Sekarang', style: TextStyle(color: Color(0xFF5B7FDB), fontWeight: FontWeight.w700)),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-
-            // Main Registration Card
-            Container(
-              width: 370,
-              height: 132,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF5B7FDB), Color(0xFF4A6FD4)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "New Mitra\nRegistration",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.visible,
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    "Tell us about yourself",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
             ),
-
-            // Form Fields Section
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Nama Lengkap
-                  const Text(
-                    "Nama Lengkap",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _namaController,
-                    decoration: InputDecoration(
-                      hintText: "Isi nama Depan",
-                      hintStyle: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 14,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF5B7FDB)),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Email
-                  const Text(
-                    "Email",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      hintText: "gmail.com",
-                      hintStyle: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 14,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF5B7FDB)),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Nomor Telepon
-                  const Text(
-                    "Nomor Telepon",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _teleponController,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
-                      hintText: "081223344",
-                      hintStyle: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 14,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF5B7FDB)),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Nama Usaha/Bengkel
-                  const Text(
-                    "Nama Usaha/Bengkel",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _usahaController,
-                    decoration: InputDecoration(
-                      hintText: "Isi nama usaha/bengkel",
-                      hintStyle: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 14,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF5B7FDB)),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Alamat
-                  const Text(
-                    "Alamat",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _alamatController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: "Isi alamat lengkap",
-                      hintStyle: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 14,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF5B7FDB)),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Upload KTP
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Upload KTP:",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: _uploadKTP,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: const Color(0xFF5B7FDB),
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _isKtpUploaded ? Icons.check : Icons.add,
-                                color: const Color(0xFF5B7FDB),
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _isKtpUploaded ? "File Uploaded" : "Tambah File",
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF5B7FDB),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // Tombol Daftar Sekarang
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _daftarSekarang,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5B7FDB),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        "Daftar sekarang",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
+          ),
+        ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _namaController.dispose();
-    _emailController.dispose();
-    _teleponController.dispose();
-    _usahaController.dispose();
-    _alamatController.dispose();
-    super.dispose();
   }
 }
