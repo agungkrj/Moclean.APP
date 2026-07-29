@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 # moclienapp
-=======
-# mocliean
->>>>>>> 36f1c013247f0425a92a148b9ef912be90b92e82
 
 A new Flutter project.
 

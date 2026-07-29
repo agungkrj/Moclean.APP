@@ -320,10 +320,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final pos = positions[index];
     
     return Positioned(
-      top: pos['top'] as double?,
-      left: pos['left'] as double?,
-      right: pos['right'] as double?,
-      bottom: pos['bottom'] as double?,
+      top: pos['top'],
+      left: pos['left'],
+      right: pos['right'],
+      bottom: pos['bottom'],
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: Container(

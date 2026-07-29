@@ -46,19 +46,11 @@ static void my_application_activate(GApplication* application) {
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
-<<<<<<< HEAD
     gtk_header_bar_set_title(header_bar, "moclienapp");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
     gtk_window_set_title(window, "moclienapp");
-=======
-    gtk_header_bar_set_title(header_bar, "mocliean");
-    gtk_header_bar_set_show_close_button(header_bar, TRUE);
-    gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
-  } else {
-    gtk_window_set_title(window, "mocliean");
->>>>>>> 36f1c013247f0425a92a148b9ef912be90b92e82
   }
 
   gtk_window_set_default_size(window, 1280, 720);
